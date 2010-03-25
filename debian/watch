@@ -1,0 +1,4 @@
+version=2
+https://launchpad.net/intltool/+download \
+	http://launchpad\.net/intltool/trunk/.+/\+download/intltool-(.*)\.tar\.gz \
+	debian uupdate
