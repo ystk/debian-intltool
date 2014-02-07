@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to create configure.
 AC_PREREQ([2.53])
 
-AC_INIT([intltool], [0.41.1])
+AC_INIT([intltool], [0.50.2])
 AC_CONFIG_SRCDIR([intltoolize.in])
 
 AM_INIT_AUTOMAKE([foreign])
@@ -29,6 +29,8 @@ if `$PERL -e "require XML::Parser" 2>/dev/null`; then
 else
    AC_MSG_ERROR([XML::Parser perl module is required for intltool])
 fi
+AC_PATH_PROG(BZR, bzr)
+
 
 AC_CONFIG_FILES([
 Makefile

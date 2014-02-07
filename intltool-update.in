@@ -64,12 +64,12 @@ my $xml_support =
 "ui|".			# Bonobo specific - User Interface desc. files
 "lang|".		# ?
 "glade2?(?:\\.in)*|".	# Glade specific - User Interface desc. files (Note: .in is not required)
-"scm(?:\\.in)*|".	# ? (Note: .in is not required)
 "oaf(?:\\.in)+|".	# DEPRECATED: Replaces by Bonobo .server files
 "etspec|".		# ?
 "server(?:\\.in)+|".	# Bonobo specific
 "sheet(?:\\.in)+|".	# ?
 "schemas(?:\\.in)+|".	# GConf specific
+"gschema.xml|".         # GLib schema (ie: GSettings) specific
 "pong(?:\\.in)+|".	# DEPRECATED: PONG is not used [by GNOME] any longer.
 "kbd(?:\\.in)+|".	# GOK specific.
 "policy(?:\\.in)+";	# PolicyKit files
@@ -88,7 +88,7 @@ my $tlk_support =
 "tlk(?:\\.in)+";        # Bioware Aurora Talk Table Format
 
 my $buildin_gettext_support =
-"c|y|cs|cc|cpp|c\\+\\+|h|hh|gob|py(?:\\.in)*";
+"c|y|cs|cc|cpp|c\\+\\+|h|hh|gob|py|scm(?:\\.in)*";
 
 ## Always flush buffer when printing
 $| = 1;
@@ -241,6 +241,10 @@ sub POFile_DetermineType ($)
    {
 	$gettext_type=$1;
    }
+   elsif ($type =~ /gschema.xml$/)
+   {
+	$gettext_type="gsettings";
+   }
    elsif ($type =~ /schemas(\.in)+$/)
    {
 	$gettext_type="schemas";
@@ -307,9 +311,13 @@ sub TextFile_DetermineEncoding ($)
 sub isNotValidMissing
 {
     my ($file) = @_;
+    my $package_name = "";
+    my $version = "";
+    $package_name = $varhash{"PACKAGE"} if (defined $varhash{"PACKAGE"});
+    $version = $varhash{"VERSION"} if (defined $varhash{"VERSION"});
 
     return if $file =~ /^\{arch\}\/.*$/;
-    return if $file =~ /^$varhash{"PACKAGE"}-$varhash{"VERSION"}\/.*$/;
+    return if $file =~ /^$package_name-$version\/.*$/;
 }
 
 sub removeFromArray
@@ -357,12 +365,16 @@ sub FindLeftoutFiles
 
     ## Search and find all translatable files
     find sub {
+	# Ignore hidden files
+	return if "$File::Find::name" =~ /\/\./;
 	push @buf_i18n_plain,        "$File::Find::name" if /\.($buildin_gettext_support)$/;
 	push @buf_i18n_xml,          "$File::Find::name" if /\.($xml_support)$/;
 	push @buf_i18n_ini,          "$File::Find::name" if /\.($ini_support)$/;
 	push @buf_i18n_xml_unmarked, "$File::Find::name" if /\.(schemas(\.in)+)$/;
 	}, "..";
     find sub {
+	# Ignore hidden files
+	return if "$File::Find::name" =~ /\/\.[^.]/;
 	push @buf_i18n_plain,        "$File::Find::name" if /\.($buildin_gettext_support)$/;
 	push @buf_i18n_xml,          "$File::Find::name" if /\.($xml_support)$/;
 	push @buf_i18n_ini,          "$File::Find::name" if /\.($ini_support)$/;
@@ -443,10 +455,21 @@ sub FindLeftoutFiles
 	my $in_comment = 0;
 	my $in_macro = 0;
         my $in_string = 0;
+        my @multiline_quotes;
+        if ($file =~ /\.scm/) {
+            @multiline_quotes = ('"');
+        } else {
+            @multiline_quotes = ("'''", '"""');
+        }
 
 	open FILE, "<$file";
 	while (<FILE>)
 	{
+            if ($file =~ /\.scm/) {
+                # Strip single quotes from .scm files.
+                s-\'--g;
+            }
+
 	    # Handle continued multi-line comment.
 	    if ($in_comment)
 	    {
@@ -457,7 +480,11 @@ sub FindLeftoutFiles
             # Handle continued multi-line string.
             if ($in_string)
             {
-                next unless /(\'\'\'|\"\"\")/;
+                my $pattern = join '|', @multiline_quotes;
+                if (!s/.*$pattern//) {
+                    s///s;
+                    next;
+                };
                 $in_string = 0;
             }
 
@@ -473,7 +500,7 @@ sub FindLeftoutFiles
 	    {
 		$in_macro = 1 if /^([^\\]|\\.)*\\$/;
 		next;
-	    }
+            }
 
 	    # Handle comments and quoted text.
 	    while (m-(/\*|//|\'\'\'|\"\"\"|\'|\")-) # \' and \" keep emacs perl mode happy
@@ -491,17 +518,22 @@ sub FindLeftoutFiles
 		{
 		    s-//.*--;
 		}
-                elsif ($match eq "\"\"\"" or $match eq "\'\'\'")
+                elsif (grep($match, @multiline_quotes))
                 {
-                    if (!s-$match.*?$match--)
+                    if (!s-$match(\\$match|[^$match])*$match-QUOTEDTEXT-g)
                     {
-                        s-$match.*--;
+                        s-$match.*-QUOTEDTEXT-s;
                         $in_string = 1;
                     }
                 }
 		else # ' or "
 		{
-		    if (!s-$match([^\\]|\\.)*?$match-QUOTEDTEXT-)
+		    s-$match(\\$match|[^$match])*$match-QUOTEDTEXT-g;
+
+                    # Handle inline # comments.
+                    s/^([^$match]+)\#.*/$1/;
+
+		    if (m-$match-)
 		    {
 			warn "mismatched quotes at line $. in $file\n";
 			s-$match.*--;
@@ -516,7 +548,7 @@ sub FindLeftoutFiles
 	    }
 
             ## C_ N_ NC_ Q_ and _ are the macros defined in gi8n.h
-	    if (/(NC_|[NCQ]_|[^_]_|(^|$)[_]) *\(QUOTEDTEXT/m)
+	    if (/(NC_|[NCQ]_|[^_]_|(^|$)[_]) *\(?QUOTEDTEXT/m)
 	    {
                 AddFileToListIfMissing($file, \@buf_allfiles);
 		last;
@@ -625,11 +657,11 @@ sub FindLeftoutFiles
 	    open OUT, ">missing";
 	    print OUT @result;
 	    close OUT;
-	    warn "\e[1mThe following files contain translations and are currently not in use. Please\e[0m\n".
-	         "\e[1mconsider adding these to the POTFILES.in file, located in the po/ directory.\e[0m\n\n";
+	    warn "The following files contain translations and are currently not in use. Please\n".
+	         "consider adding these to the POTFILES.in file, located in the po/ directory.\n\n";
 	    print STDERR @result, "\n";
 	    warn "If some of these files are left out on purpose then please add them to\n".
-		 "POTFILES.skip instead of POTFILES.in. A file \e[1m'missing'\e[0m containing this list\n".
+		 "POTFILES.skip instead of POTFILES.in. A file 'missing' containing this list\n".
 		 "of left out files has been written in the current directory.\n";
             warn "Please report to ". $varhash{"PACKAGE_BUGREPORT"} ."\n" if (defined $varhash{"PACKAGE_BUGREPORT"});
 	}
@@ -640,9 +672,9 @@ sub FindLeftoutFiles
 	    print OUT @buf_potfiles_notexist;
 	    close OUT;
 	    warn "\n" if ($VERBOSE or @result);
-	    warn "\e[1mThe following files do not exist anymore:\e[0m\n\n";
+	    warn "The following files do not exist anymore:\n\n";
 	    warn @buf_potfiles_notexist, "\n";
-	    warn "Please remove them from POTFILES.in. A file \e[1m'notexist'\e[0m\n".
+	    warn "Please remove them from POTFILES.in. A file 'notexist'\n".
                 "containing this list of absent files has been written in the current directory.\n";
             warn "Please report to ". $varhash{"PACKAGE_BUGREPORT"} ."\n" if (defined $varhash{"PACKAGE_BUGREPORT"});
 	}
@@ -816,7 +848,7 @@ sub GeneratePOTemplate
 				 "         but $PROGRAM thinks that most of the source files are in\n".
 				 "         $encoding encoding, while \"$_\" is (likely) in\n".
 		       		 "         $gettext_code encoding. If you are sure that all translatable strings\n".
-				 "         are in same encoding (say UTF-8), please \e[1m*prepend*\e[0m the following\n".
+				 "         are in same encoding (say UTF-8), please *prepend* the following\n".
 				 "         line to POTFILES.in:\n\n".
 				 "                 [encoding: UTF-8]\n\n".
 				 "         and make sure that configure.in/ac checks for $PACKAGE >= 0.27 .\n".

@@ -17,6 +17,7 @@ EXTRA_DIST =					\
 	extract12.xml.in.h			\
 	extract14.xml.in.h			\
 	extract-gtkbuilder.ui.h			\
+	gsettings.gschema.xml.h			\
 	iso88591text.xml.in.h			\
 	merge-cdata.xml				\
 	merge-deepattr.xml			\
@@ -37,6 +38,5 @@ EXTRA_DIST =					\
 	test-quoted.dtd.h			\
 	test.schemas				\
 	test.schemas.in.h			\
-	test.scm.h				\
 	unicodetext.xml.in.h			\
 	$(NULL)
