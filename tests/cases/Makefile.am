@@ -19,6 +19,7 @@ EXTRA_DIST =					\
 	fr.po					\
 	fr_BE.po				\
 	fr_FR.po				\
+	gsettings.gschema.xml			\
 	iso88591text.xml.in			\
 	merge-cdata.xml.in			\
 	merge-deepattr.xml.in			\
@@ -41,7 +42,6 @@ EXTRA_DIST =					\
 	test-quoted.po				\
 	test.po 				\
 	test.schemas.in				\
-	test.scm				\
 	unicodetext.xml.in			\
 	$(NULL)
 
@@ -58,6 +58,7 @@ CLEANFILES =					\
 	extract14.xml.in.h			\
 	extract9.xml				\
 	extract9.xml.in.h			\
+	gsettings.gschema.xml.h			\
 	iso88591text.xml.in.h			\
 	merge-cdata.xml				\
 	merge-deepattr.xml			\
@@ -69,7 +70,6 @@ CLEANFILES =					\
 	test-quoted.dtd.h			\
 	test.schemas				\
 	test.schemas.in.h			\
-	test.scm.h				\
 	unicodetext.xml.in.h			\
 	extract1.desktop.in			\
 	extract3.xml.in.h			\

@@ -1,3 +1,52 @@
+intltool (0.50.2-2) unstable; urgency=low
+
+  * Mark intltool as Multi-Arch: foreign to allow using this as
+    build dependency for cross-building. Thanks, Wookey! (closes: #664588)
+
+ -- Jordi Mallach <jordi@debian.org>  Fri, 30 Mar 2012 20:51:35 +0200
+
+intltool (0.50.2-1) unstable; urgency=low
+
+  * New upstream release.
+    - fixes backward compatibility issue with 0.41.x (LP: #903340).
+  * Upload to unstable, as this version seems safer.
+  * Bump to Standards-Version 3.9.3, with no changes needed.
+
+ -- Jordi Mallach <jordi@debian.org>  Sun, 26 Feb 2012 20:42:03 +0100
+
+intltool (0.50.1-1) experimental; urgency=low
+
+  [ Josselin Mouette ]
+  * Update repository URL.
+
+  [ Jordi Mallach ]
+  * New upstream release.
+  * Drop 01_NEWS.patch, upstream now ships a generated ChangeLog.
+  * Drop 02_ignore_hidden.patch, merged upstream.
+  * Bump to version 3 watch file.
+
+ -- Jordi Mallach <jordi@debian.org>  Mon, 06 Feb 2012 14:36:17 +0100
+
+intltool (0.41.1-3) unstable; urgency=low
+
+  * Set Maintainer to pkg-gnome-maintainers@lists.alioth.debian.org.
+  * Bump Standards-Version from 3.8.0 to 3.9.2; no changes needed.
+  * Bump Debhelper to v8. Update Build-Depends accordingly.
+  * Add Depends on ${misc:Depends}.
+  * debian/watch: don't uupdate, and remove debian/uupdate script.
+  * debian/copyright: point to versioned GPL-2.
+  * Add Homepage and Vcs-* fields.
+
+ -- Jordi Mallach <jordi@debian.org>  Sat, 15 Oct 2011 02:45:54 +0200
+
+intltool (0.41.1-2) unstable; urgency=low
+
+  * Switch to 3.0 quilt format.
+  * 02_ignore_hidden.patch: new patch. Ignore hidden files for 
+    intltool-update. Closes: #560704.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 23 Sep 2011 21:18:37 +0200
+
 intltool (0.41.1-1) unstable; urgency=low
 
   * New upstream release:

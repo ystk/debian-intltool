@@ -6,24 +6,28 @@
 Source: intltool
 Section: devel
 Priority: optional
-Maintainer: Jordi Mallach <jordi@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Josselin Mouette <joss@debian.org>, Loic Minier <lool@dooz.org>, Sebastian Dröge <slomo@debian.org>
-Build-Depends: debhelper (>= 5),
+Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
+Uploaders: Jordi Mallach <jordi@debian.org>, Josselin Mouette <joss@debian.org>, Sebastian Dröge <slomo@debian.org>
+Build-Depends: debhelper (>= 8),
                cdbs,
                gnome-pkg-tools (>= 0.10),
                perl (>= 5.8.1)
 Build-Depends-Indep: libxml-parser-perl
-Standards-Version: 3.8.0
+Standards-Version: 3.9.3
+Vcs-Svn: svn://anonscm.debian.org/svn/pkg-gnome/desktop/unstable/intltool
+Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/intltool/
+Homepage: https://launchpad.net/intltool
 
 Package: intltool
 Architecture: all
+Multi-Arch: foreign
 Depends: gettext (>= 0.10.36-1),
          patch,
          automake | automaken,
          ${perl:Depends},
          perl (>= 5.8.1),
          libxml-parser-perl,
-         file
+         file, ${misc:Depends}
 Provides: xml-i18n-tools
 Description: Utility scripts for internationalizing XML
  Automatically extracts translatable strings from oaf, glade, bonobo
